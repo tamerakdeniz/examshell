@@ -11,6 +11,7 @@ import tempfile
 import uuid
 
 from m2.editor import Editor
+from m2.updater import announce, update, Updated
 from m2.ai import MODELS, ask
 from m2.grader import QUESTIONS, grade, initialize, filename
 
@@ -21,6 +22,7 @@ HELP = """
   /subject  /path               Soruyu veya teslim yolunu göster
   /grade                        Kodu derle ve test et (grademe de geçerli)
   /answer [long]  /diff [long]   Kısa/uzun çözümü göster veya kodunla karşılaştır
+  /update                       Yeni sürümü indir ve kur
   /progress                     Level bazında çözülen soru sayıları
   /api-key  /model              Gemini anahtarını veya modeli değiştir
   /ai <soru>                    Subject, teslim ve son test sonucuyla yardım al
@@ -153,6 +155,8 @@ def shell(home, editor=None):
             save(statepath,state)
             break
         if cmd in ('help','?'): print(HELP)
+        elif cmd=='update':
+            update()
         elif cmd=='progress':
             for l,qs in LEVELS.items():
                 print(f'Level {l}: {len(set(qs).intersection(state["solved"]))}/{len(qs)}')
@@ -211,6 +215,9 @@ def select_milestone():
     print("42 ExamShell · Milestone seçimi\n1) M2 — Milestone 2")
     while True:
         choice = input("Seçim [1] (çıkmak için exit): ").strip().lower()
+        if choice in ("update", "/update"):
+            update()
+            continue
         if choice in ("", "1", "2", "m2"):
             return shell
         if choice in ("exit", "/exit", "quit", "/quit"):
@@ -225,9 +232,12 @@ if __name__=='__main__':
     args=parser.parse_args()
     editor = None if args.terminal else Editor(save)
     try:
+        announce()
         selected = select_milestone()
         if selected:
             selected(args.home.expanduser().resolve(), editor)
+    except Updated:
+        pass
     except (KeyboardInterrupt,EOFError):
         print('\nÇıkılıyor. Kaydedilen oturum sonraki açılışta devam eder.')
     finally:

@@ -81,3 +81,10 @@ Kurulum, test, yeni soru ekleme ve pull request adımları [katkı rehberinde](C
 ## Proje kapsamı
 
 Bu proje 42 Milestone 2 için bağımsız bir pratik aracıdır. Soru bankası proje sahibinin M2 çalışma koleksiyonundan alınmıştır. Yerel testler subject davranışlarına göre hazırlanmıştır.
+
+
+## Güncelleme
+
+`examshell` açılışta kurulum reposunun `origin/main` dalını kontrol eder. Yeni commit varsa `/update` önerir. Milestone menüsünde veya sınav/pratik komut satırında `/update` ya da `update` yazabilirsin.
+
+Güncelleme yalnızca temiz bir `main` dalında, fast-forward ile uygulanır. Yerel değişiklik veya ayrışmış geçmiş varsa açıklama gösterilir. Ağ erişimi yoksa uygulamayı kullanmaya devam edebilirsin. Başarılı güncellemeden sonra uygulama kapanır. VS Code’daki ExamShell penceresini kapatıp `examshell` komutunu yeniden çalıştır. Kayıtlı oturumuna M2 seçiminden sonra dönersin. Git ile klonlanmış kurulum gerekir.
