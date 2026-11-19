@@ -1,4 +1,5 @@
 """Connect one ExamShell session to its own VS Code window."""
+from .i18n import t, language
 import json
 from pathlib import Path
 import select
@@ -24,13 +25,13 @@ class Editor:
         if not cli:
             mac = Path('/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code')
             if not mac.is_file():
-                print('VS Code bulunamadı. Terminal modu açık.')
+                print(t('VS Code bulunamadı. Terminal modu açık.'))
                 return False
             cli = str(mac)
         previously_opened = (root/'.m2-view.json').is_file()
         self.root = root
         self.ticket = str(submission.relative_to(root))
-        self.view = dict(attempt=uuid.uuid4().hex, ticket=self.ticket, subject=subject.read_text(),
+        self.view = dict(language=language(), attempt=uuid.uuid4().hex, ticket=self.ticket, subject=subject.read_text(),
                          short=short.read_text(), long=long.read_text())
         self.display('subject')
         def acknowledged(seconds):
@@ -51,12 +52,12 @@ class Editor:
                 [cli, '--new-window', f'--extensionDevelopmentPath={EXTENSION}', str(root)],
                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
         except OSError as error:
-            print(f'VS Code açılamadı: {error}')
+            print(t('VS Code açılamadı: {0}' ,error))
             self.close()
             return False
         if acknowledged(12):
             return True
-        print('VS Code güncel dosyayı henüz açmadı. Terminalden devam edebilir veya /subject ile tekrar deneyebilirsin.')
+        print(t('VS Code güncel dosyayı henüz açmadı. Terminalden devam edebilir veya /subject ile tekrar deneyebilirsin.'))
         self.close()
         return False
 
@@ -78,7 +79,7 @@ class Editor:
         request = self.root/'.m2-grade.json'
         while True:
             if self.process and self.process.poll() not in (None,0):
-                print('VS Code açılamadı. /subject ile yeniden deneyebilirsin.')
+                print(t('VS Code açılamadı. /subject ile yeniden deneyebilirsin.'))
                 self.close()
                 return input(prompt)
             if request.exists():

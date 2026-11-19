@@ -28,6 +28,7 @@ class ExamTests(unittest.TestCase):
     def test_exam_retry_resume_and_finish(self):
         with tempfile.TemporaryDirectory() as tmp:
             home=Path(tmp)
+            (home/'config.json').write_text('{"language":"tr"}')
             def run(commands):
                 out=io.StringIO()
                 with redirect_stdout(out),patch('builtins.input',side_effect=commands),patch('getpass.getpass',return_value=''):
@@ -52,6 +53,7 @@ class ExamTests(unittest.TestCase):
     def test_exit_starts_fresh_and_quit_resumes(self):
         with tempfile.TemporaryDirectory() as tmp:
             home = Path(tmp)
+            (home/'config.json').write_text('{"language":"tr"}')
             def run(commands):
                 with redirect_stdout(io.StringIO()), patch('builtins.input', side_effect=commands), patch('getpass.getpass', return_value=''):
                     app.shell(home)

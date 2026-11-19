@@ -51,3 +51,10 @@ Yeni milestone eklerken onun soru bankasını, değerlendiricisini ve kayıt dü
 ## README güncellemeleri
 
 README, projeyi ilk kez klonlayan bir kullanıcının kurup çalıştırabileceği adımları içermeli. Komut, kurulum gereksinimi veya oturum davranışı değiştiğinde ilgili bölümü güncelle. Tamamlanan özelliklerle henüz doğrulanmamış davranışları açıkça belirt.
+
+
+## Dil desteği
+
+Varsayılan dil İngilizcedir. Python arayüz mesajları için `m2/i18n.py` ve `m2/en.json` kullanılır. Türkçe mesaj anahtarının İngilizce karşılığını kataloğa ekle ve mesajı `t()` ile göster. VS Code düğmelerinde oturumdan gelen `language` değerini kullan.
+
+Yeni sorularda İngilizce `README.md` yanında Türkçe `README.tr.md` ekle. Dosya adları, prototipler ve örnek girdi/çıktıları koru. Dil değişikliğinin aktif soru ve ilerlemeyi koruduğunu doğrula. `README.md` ana İngilizce rehber, `README.tr.md` Türkçe rehberdir.

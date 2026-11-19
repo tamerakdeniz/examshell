@@ -1,0 +1,20 @@
+## Konu
+
+```text
+Soru adı: print_hex
+Beklenen dosyalar: print_hex.c
+İzin verilen fonksiyonlar: write
+------------------------------------------------------------------------
+
+Onluk tabandaki pozitif veya sıfır bir sayıyı onaltılık tabanda, küçük harflerle yazdır. Sonuna yeni satır ekle. Argüman sayısı 1 değilse yalnızca yeni satır yazdır.
+
+Örnekler
+$> ./print_hex "10" | cat -e
+a$
+$> ./print_hex "255" | cat -e
+ff$
+$> ./print_hex "5156454" | cat -e
+4eae66$
+$> ./print_hex | cat -e
+$
+```

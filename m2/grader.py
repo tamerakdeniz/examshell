@@ -1,4 +1,5 @@
 """Compile and run the learner's own local C code (not a security sandbox)."""
+from .i18n import t
 import json
 import os
 from pathlib import Path
@@ -37,10 +38,10 @@ def grade(name, directory):
     sources = (sorted(directory.glob('*.c')) if name in ('do_op','flood_fill')
                else [directory / filename(name)])
     if not sources or not all(p.is_file() for p in sources):
-        return False, 'Teslim dosyası eksik: ' + filename(name)
+        return False, t('Teslim dosyası eksik: ') + filename(name)
     cc = shutil.which('cc')
     if not cc:
-        return False, 'C derleyicisi bulunamadı: cc (Clang veya GCC) kur.'
+        return False, t('C derleyicisi bulunamadı: cc (Clang veya GCC) kur.')
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         binary = root / 'submission'
@@ -52,12 +53,12 @@ def grade(name, directory):
         try:
             build = subprocess.run(cmd,cwd=root,capture_output=True,timeout=20)
         except subprocess.TimeoutExpired:
-            return False, 'Derleme zaman aşımı.'
+            return False, t('Derleme zaman aşımı.')
         if build.returncode:
-            return False, 'Derleme hatası:\n'+build.stderr[:4000].decode(errors='replace')
+            return False, t('Derleme hatası:\n')+build.stderr[:4000].decode(errors='replace')
         cases = FUNCTION[name] if name in FUNCTION else PROGRAM[name]
         for i,(args,expected) in enumerate(cases,1):
-            title = f'Test {i}/{len(cases)} · {name} · girdi: {json.dumps(args,ensure_ascii=False)}'
+            title = t('Test {0}/{1} · {2} · girdi: {3}' ,i, len(cases), name, json.dumps(args,ensure_ascii=False))
             with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
                 try:
                     proc = subprocess.run([str(binary),*args],cwd=root,stdin=subprocess.DEVNULL,
@@ -65,13 +66,13 @@ def grade(name, directory):
                                           env={'PATH':os.defpath,'LC_ALL':'C'})
                     status = proc.returncode
                 except subprocess.TimeoutExpired:
-                    status = 'zaman aşımı (2 sn)'
+                    status = t('zaman aşımı (2 sn)')
                 out.seek(0)
                 actual = out.read()
                 if status or actual != expected.encode():
                     err.seek(0)
                     detail = err.read(1500).decode(errors="replace")
-                    return False, (f'{title}\nBeklenen: {expected!r}\nAlınan:   {actual[:3000].decode(errors="backslashreplace")!r}'
-                                   + (f'\nÇıkış: {status}' if status else '')
+                    return False, (t('{0}\nBeklenen: {1}\nAlınan:   {2}' ,title, repr(expected), repr(actual[:3000].decode(errors="backslashreplace")))
+                                   + (t('\nÇıkış: {0}' ,status) if status else '')
                                    + (f'\nstderr: {detail!r}' if detail else ''))
-        return True, f'{len(cases)}/{len(cases)} test geçti.'
+        return True, t('{0}/{1} test geçti.' ,len(cases), len(cases))

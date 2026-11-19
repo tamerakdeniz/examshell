@@ -9,6 +9,9 @@ exports.activate = async function (context) {
     const items = [];
     const documents = new Map();
     let current, revision, resultRevision, pending = false;
+    const tr = (english, turkish) => current?.language === 'tr' ? turkish : english;
+    const shortLabel = () => tr('Short solution', 'Kısa çözüm');
+    const longLabel = () => tr('Long solution', 'Uzun çözüm');
     const file = name => path.join(root, name);
     const read = async name => JSON.parse(await fs.readFile(file(name), 'utf8'));
     const show = (uri, column) => vscode.window.showTextDocument(uri, {viewColumn: column, preview: false});
@@ -17,31 +20,31 @@ exports.activate = async function (context) {
     }));
 
     function reference(label, content) {
-        const uri = vscode.Uri.from({scheme: 'm2-exam', path: '/' + current.ticket + '/' + label});
+        const uri = vscode.Uri.from({scheme: 'm2-exam', path: '/' + current.ticket + '/' + (current.language || 'en') + '/' + label});
         documents.set(uri.toString(), content);
         return uri;
     }
     async function display(action, alternative) {
         if (!current || current.action === 'closed') return;
         const submission = vscode.Uri.file(file(current.ticket));
-        const answer = () => reference(alternative ? 'Uzun çözüm.c' : 'Kısa çözüm.c',
+        const answer = () => reference((alternative ? longLabel() : shortLabel()) + '.c',
                                        alternative ? current.long : current.short);
         if (action === 'diff') {
             await vscode.commands.executeCommand('vscode.diff', submission, answer(),
-                'Teslim ↔ ' + (alternative ? 'Uzun çözüm' : 'Kısa çözüm'), {viewColumn: vscode.ViewColumn.One});
+                tr('Submission ↔ ', 'Teslim ↔ ') + (alternative ? longLabel() : shortLabel()), {viewColumn: vscode.ViewColumn.One});
         } else if (action === 'answer') {
             await show(answer(), vscode.ViewColumn.One);
         } else {
             await vscode.commands.executeCommand('vscode.setEditorLayout', {
                 orientation: 0, groups: [{size: 0.55}, {size: 0.45}]
             });
-            const subject = current.subject.replace(/^## Subject\s*\n```[^\n]*\n/, '').replace(/\s*```\s*$/, '');
-            await show(reference('Subject.txt', subject), vscode.ViewColumn.Two);
+            const subject = current.subject.replace(/^## (?:Subject|Konu)\s*\n```[^\n]*\n/, '').replace(/\s*```\s*$/, '');
+            await show(reference(tr('Subject.txt', 'Konu.txt'), subject), vscode.ViewColumn.Two);
             await show(submission, vscode.ViewColumn.One);
         }
     }
 
-    for (const [action, label] of [['grade','$(play) Grade'], ['answer','Cevabı gör'], ['diff','Karşılaştır'], ['subject','Subject']]) {
+    for (const [action, label] of [['grade','$(play) Grade'], ['answer','View solution'], ['diff','Compare'], ['subject','Subject']]) {
         const command = 'm2.' + action;
         const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 110 - items.length);
         item.text = label;
@@ -56,7 +59,7 @@ exports.activate = async function (context) {
                     const shown = vscode.window.activeTextEditor?.document.uri;
                     if (shown?.scheme === 'file' && path.dirname(shown.fsPath) !== path.dirname(file(ticket))) {
                         await display('subject');
-                        vscode.window.showInformationMessage('Güncel teslim açıldı. Kontrol ettikten sonra Grade düğmesine bas.');
+                        vscode.window.showInformationMessage(tr('Current submission opened. Review it, then click Grade.', 'Güncel teslim açıldı. Kontrol ettikten sonra Grade düğmesine bas.'));
                         return;
                     }
                     pending = true;
@@ -64,7 +67,7 @@ exports.activate = async function (context) {
                         const folder = path.dirname(file(ticket));
                         for (const doc of vscode.workspace.textDocuments) {
                             if (doc.isDirty && doc.uri.scheme === 'file' && path.dirname(doc.uri.fsPath) === folder) {
-                                if (!await doc.save()) throw Error('Teslim dosyası kaydedilemedi.');
+                                if (!await doc.save()) throw Error(tr('Could not save the submission.', 'Teslim dosyası kaydedilemedi.'));
                             }
                         }
                         const tmp = file('.m2-grade.tmp');
@@ -75,8 +78,8 @@ exports.activate = async function (context) {
                 } else if (action === 'subject') {
                     await display(action);
                 } else {
-                    const choice = await vscode.window.showQuickPick(['Kısa çözüm','Uzun çözüm']);
-                    if (choice) await display(action, choice === 'Uzun çözüm');
+                    const choice = await vscode.window.showQuickPick([shortLabel(), longLabel()]);
+                    if (choice) await display(action, choice === longLabel());
                 }
             } catch (e) { vscode.window.showErrorMessage(String(e.message)); }
         }));
@@ -111,6 +114,9 @@ exports.activate = async function (context) {
             if (stale.length) await vscode.window.tabGroups.close(stale, true);
         }
         current = next;
+        items[1].text = tr('View solution', 'Cevabı gör');
+        items[2].text = tr('Compare', 'Karşılaştır');
+        items[3].text = tr('Subject', 'Konu');
         if (current.action === 'closed') {
             items.forEach(item => item.hide());
         } else {

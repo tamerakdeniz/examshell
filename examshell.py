@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""42 Milestone 2 — yerel sınav ve pratik terminali."""
+"""42 Milestone 2 — local exams and practice with VS Code."""
+from m2.i18n import t, language, set_language, subject_path
 import argparse
 import difflib
 import getpass
@@ -22,6 +23,8 @@ HELP = """
   /subject  /path               Soruyu veya teslim yolunu göster
   /grade                        Kodu derle ve test et (grademe de geçerli)
   /answer [long]  /diff [long]   Kısa/uzun çözümü göster veya kodunla karşılaştır
+  /lang [en|tr]                 Arayüz ve subject dilini değiştir
+  /help                         Komutları göster
   /update                       Yeni sürümü indir ve kur
   /progress                     Level bazında çözülen soru sayıları
   /api-key  /model              Gemini anahtarını veya modeli değiştir
@@ -69,46 +72,73 @@ def solution(name, long=False):
     return d/(name+'.c') if long else next(p for p in (d/'main.py',d/'main.c') if p.exists())
 
 
+def configure_language(config, path, value=None):
+    if value is None:
+        value = input("Language / Dil — 1: English [default], 2: Türkçe: ").strip()
+    choices = {"": "en", "1": "en", "en": "en", "english": "en",
+               "2": "tr", "tr": "tr", "türkçe": "tr"}
+    selected = choices.get(value.lower())
+    if selected is None:
+        print("Choose en or tr / en veya tr seç.")
+        return False
+    config['language'] = selected
+    set_language(selected)
+    save(path, config)
+    print("Language saved: English." if selected == "en" else "Dil kaydedildi: Türkçe.")
+    return True
+
+
+def load_language(home):
+    path = home / 'config.json'
+    config = read(path, {})
+    if config.get('language') not in ('en', 'tr'):
+        while not configure_language(config, path):
+            pass
+    else:
+        set_language(config['language'])
+    return config
+
+
 def practice():
-    raw = input('Leveller (örn. 2 veya 1,3,4): ').strip()
+    raw = input(t('Leveller (örn. 2 veya 1,3,4): ')).strip()
     try:
         levels = list(dict.fromkeys(int(x) for x in raw.replace(',',' ').split()))
         if not levels or any(l not in LEVELS for l in levels):
             raise ValueError
     except ValueError:
-        print('1 ile 4 arasında level gir.')
+        print(t('1 ile 4 arasında level gir.'))
         return None
     mode = 'ordered'
     if len(levels)>1:
-        choice = input('1: girilen sırayla · 2: rastgele [1]: ').strip()
+        choice = input(t('1: girilen sırayla · 2: rastgele [1]: ')).strip()
         if choice not in ('','1','2'):
-            print('Geçersiz seçim.'); return None
+            print(t('Geçersiz seçim.')); return None
         mode = 'random' if choice=='2' else 'ordered'
-    repeat=input('Çözülmüş sorular tekrar gelebilsin mi? [e/H]: ').strip().lower()
-    if repeat not in ('','h','hayır','e','evet'):
-        print('e veya h gir.'); return None
-    return dict(mode=mode,levels=levels,repeat=repeat in ('e','evet'))
+    repeat=input(t('Çözülmüş sorular tekrar gelebilsin mi? [e/H]: ')).strip().lower()
+    if repeat not in ('','h','hayır','e','evet','y','yes','n','no'):
+        print(t('e veya h gir.')); return None
+    return dict(mode=mode,levels=levels,repeat=repeat in ('e','evet','y','yes'))
 
 
 def configure_key(config, path):
-    key = getpass.getpass('Gemini API anahtarı (gizli; Enter: atla): ').strip()
+    key = getpass.getpass(t('Gemini API anahtarı (gizli; Enter: atla): ')).strip()
     if key:
         config['key']=key
-        print('Anahtar kaydedildi.')
+        print(t('Anahtar kaydedildi.'))
     config['onboarded']=True
     save(path, config)
 
 
 def shell(home, editor=None):
     cfgpath, statepath = home/'config.json',home/'progress.json'
-    cfg=read(cfgpath,{})
+    cfg=load_language(home)
     state=read(statepath,{'solved':[], 'session':None})
     previous = state.setdefault('previous', {})
     def remember(q):
         previous[QUESTIONS[q].parent.name.removeprefix('level')] = q
     if state['session']:
         remember(state['session']['question'])
-    print('42 / M2 ExamShell    •    4 level · 53 soru\n/exam: sınav   /practice: pratik   /help: komutlar')
+    print(t('42 / M2 ExamShell    •    4 level · 53 soru\n/exam: sınav   /practice: pratik   /help: komutlar'))
     if not cfg.get('onboarded'):
         configure_key(cfg,cfgpath)
 
@@ -118,11 +148,11 @@ def shell(home, editor=None):
     def show(s):
         q=s['question']
         path=initialize(q,directory(s))
-        if editor and editor.open(home/'work', path, QUESTIONS[q]/'README.md',
+        if editor and editor.open(home/'work', path, subject_path(QUESTIONS[q]),
                                   solution(q), solution(q, True)):
-            print(f"[{QUESTIONS[q].parent.name} · {q}] VS Code'a gönderildi. Teslim: {path}")
+            print(t("[{0} · {1}] VS Code'a gönderildi. Teslim: {2}" ,QUESTIONS[q].parent.name, q, path))
             return
-        print(f"\n[{QUESTIONS[q].parent.name} · {q}]\n{(QUESTIONS[q]/'README.md').read_text()}\nTeslim: {path}\nKaydettikten sonra /grade yaz.")
+        print(t('\n[{0} · {1}]\n{2}\nTeslim: {3}\nKaydettikten sonra /grade yaz.' ,QUESTIONS[q].parent.name, q, (subject_path(QUESTIONS[q])).read_text(), path))
 
     def advance(s):
         s['last']=''
@@ -130,7 +160,7 @@ def shell(home, editor=None):
         if s['question']:
             remember(s['question'])
         if s['question'] is None:
-            print('Sınav tamamlandı!' if s['mode']=='exam' else 'Seçili levellerde çözülmemiş soru kalmadı.')
+            print(t('Sınav tamamlandı!') if s['mode']=='exam' else t('Seçili levellerde çözülmemiş soru kalmadı.'))
             state['session']=None
             if editor: editor.close()
         save(statepath,state)
@@ -138,7 +168,7 @@ def shell(home, editor=None):
             show(s)
 
     if state['session']:
-        print('Kayıtlı oturuma devam ediliyor.')
+        print(t('Kayıtlı oturuma devam ediliyor.'))
         show(state['session'])
     while True:
         s=state['session']
@@ -149,12 +179,15 @@ def shell(home, editor=None):
         if cmd=='exit':
             state['session']=None
             save(statepath,state)
-            print('Oturum kapandı. Sonraki açılışta yeni mod seçebilirsin.')
+            print(t('Oturum kapandı. Sonraki açılışta yeni mod seçebilirsin.'))
             break
         if cmd=='quit':
             save(statepath,state)
             break
-        if cmd in ('help','?'): print(HELP)
+        if cmd in ('help','?'): print(t(HELP))
+        elif cmd=='lang':
+            if configure_language(cfg, cfgpath, arg.strip() or None) and s:
+                show(s)
         elif cmd=='update':
             update()
         elif cmd=='progress':
@@ -163,20 +196,20 @@ def shell(home, editor=None):
         elif cmd=='api-key': configure_key(cfg,cfgpath)
         elif cmd=='model':
             for i,m in enumerate(MODELS,1): print(f'{i}. {m}'+(' *' if m==cfg.get('model',MODELS[0]) else ''))
-            value=arg.strip() or input('Model numarası: ').strip()
+            value=arg.strip() or input(t('Model numarası: ')).strip()
             if value in ('1','2','3','4'):
-                cfg['model']=MODELS[int(value)-1];save(cfgpath,cfg);print('Seçildi:',cfg['model'])
-            else: print('Geçersiz seçim.')
+                cfg['model']=MODELS[int(value)-1];save(cfgpath,cfg);print(t('Seçildi:'),cfg['model'])
+            else: print(t('Geçersiz seçim.'))
         elif cmd in ('exam','practice'):
-            if s: print('Açık oturum var. Yeni oturum için önce /end yaz.');continue
+            if s: print(t('Açık oturum var. Yeni oturum için önce /end yaz.'));continue
             setup=dict(mode='exam',levels=[1,2,3,4],repeat=True) if cmd=='exam' else practice()
             if setup:
                 s=dict(setup,id=uuid.uuid4().hex,index=0,passed=0)
                 state['session']=s;advance(s)
         elif cmd=='end':
             if editor: editor.close()
-            state['session']=None;save(statepath,state);print('Oturum kapalı. Çözümler ve dosyalar saklanıyor.')
-        elif not s: print('Önce /exam veya /practice ile başla. Komutlar: /help')
+            state['session']=None;save(statepath,state);print(t('Oturum kapalı. Çözümler ve dosyalar saklanıyor.'))
+        elif not s: print(t('Önce /exam veya /practice ile başla. Komutlar: /help'))
         else:
             q=s['question'];d=directory(s);p=d/filename(q)
             if cmd=='subject': show(s)
@@ -185,12 +218,12 @@ def shell(home, editor=None):
                 ok, message=grade(q,d);print(message)
                 if editor and editor.root:
                     done = ok and s['mode']=='exam' and s['index']==len(s['levels'])-1
-                    editor.report(ok, message + (' Sınav tamamlandı!' if done else ''))
+                    editor.report(ok, message + (t(' Sınav tamamlandı!') if done else ''))
                 if ok:
                     if q not in state['solved']: state['solved'].append(q)
                     s['index']+=1;s['passed']+=1;advance(s)
                 else:
-                    s['last']=message;save(statepath,state);print('Aynı sorudasın. Düzenleyip yeniden /grade yaz.')
+                    s['last']=message;save(statepath,state);print(t('Aynı sorudasın. Düzenleyip yeniden /grade yaz.'))
             elif cmd in ('answer','diff'):
                 if editor and editor.root:
                     editor.display(cmd, arg.strip()=='long')
@@ -200,21 +233,29 @@ def shell(home, editor=None):
                 else:
                     own=p.read_text(errors='replace') if p.exists() else ''
                     print('\n'.join(difflib.unified_diff(own.splitlines(),ref.read_text().splitlines(),
-                              fromfile='teslim/'+p.name,tofile='çözüm/'+ref.name,lineterm='')) or 'Kodlar aynı.')
+                              fromfile=t('teslim/')+p.name,tofile=t('çözüm/')+ref.name,lineterm='')) or t('Kodlar aynı.'))
             elif cmd=='ai':
                 key=cfg.get('key') or os.environ.get('GEMINI_API_KEY')
-                if not key: print('Önce /api-key ile anahtar ekle.');continue
-                if not arg.strip(): print('Örnek: /ai Bu girdi için neden hata alıyorum?');continue
+                if not key: print(t('Önce /api-key ile anahtar ekle.'));continue
+                if not arg.strip(): print(t('Örnek: /ai Bu girdi için neden hata alıyorum?'));continue
                 code='\n'.join(f'{f.name}:\n{f.read_text(errors="replace")}' for f in sorted(d.glob('*')) if f.suffix in ('.h','.c'))
-                prompt=f"Türkçe bir C eğitmeni olarak yardımcı ol.\nSubject:\n{(QUESTIONS[q]/'README.md').read_text()}\nKod:\n{code}\nSon test:\n{s['last']}\nSoru: {arg}"
+                prompt=f"Act as a C tutor. Respond in {'Turkish' if language()=='tr' else 'English'}.\nSubject:\n{(subject_path(QUESTIONS[q])).read_text()}\nKod:\n{code}\nSon test:\n{s['last']}\nSoru: {arg}"
                 print(ask(key,cfg.get('model',MODELS[0]),prompt))
-            else: print('Bilinmeyen komut. /help')
+            else: print(t('Bilinmeyen komut. /help'))
 
 
-def select_milestone():
-    print("42 ExamShell · Milestone seçimi\n1) M2 — Milestone 2")
+def select_milestone(home):
+    print(t('42 ExamShell · Milestone seçimi\n1) M2 — Milestone 2'))
     while True:
-        choice = input("Seçim [1] (çıkmak için exit): ").strip().lower()
+        choice = input(t('Seçim [1] (çıkmak için exit): ')).strip().lower()
+        if choice.lstrip('/').split(' ')[0] == 'lang':
+            config = read(home / 'config.json', {})
+            configure_language(config, home / 'config.json', choice.partition(' ')[2].strip() or None)
+            print(t("42 ExamShell · Milestone seçimi\n1) M2 — Milestone 2"))
+            continue
+        if choice in ("help", "/help"):
+            print(t(HELP))
+            continue
         if choice in ("update", "/update"):
             update()
             continue
@@ -222,23 +263,24 @@ def select_milestone():
             return shell
         if choice in ("exit", "/exit", "quit", "/quit"):
             return None
-        print("M2 için 1 veya M2 yaz.")
+        print(t('M2 için 1 veya M2 yaz.'))
 
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--home',type=Path,default=Path.home()/'.m2-examshell',help='ayar, ilerleme ve teslim dizini')
-    parser.add_argument('--terminal', action='store_true', help='VS Code açmadan çalış')
+    parser.add_argument('--home',type=Path,default=Path.home()/'.m2-examshell',help=t('ayar, ilerleme ve teslim dizini'))
+    parser.add_argument('--terminal', action='store_true', help=t('VS Code açmadan çalış'))
     args=parser.parse_args()
     editor = None if args.terminal else Editor(save)
     try:
+        load_language(args.home.expanduser().resolve())
         announce()
-        selected = select_milestone()
+        selected = select_milestone(args.home.expanduser().resolve())
         if selected:
             selected(args.home.expanduser().resolve(), editor)
     except Updated:
         pass
     except (KeyboardInterrupt,EOFError):
-        print('\nÇıkılıyor. Kaydedilen oturum sonraki açılışta devam eder.')
+        print(t('\nÇıkılıyor. Kaydedilen oturum sonraki açılışta devam eder.'))
     finally:
         if editor: editor.close()
