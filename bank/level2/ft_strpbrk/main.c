@@ -1,0 +1,21 @@
+#include <string.h>
+
+char *ft_strpbrk(const char *s, const char *charset)
+{
+    int i;
+
+    if (!s || !charset)
+        return (NULL);
+    while (*s)
+    {
+        i = 0;
+        while (charset[i])
+        {
+            if (*s == charset[i])
+                return ((char *)s);
+            i++;
+        }
+        s++;
+    }
+    return (NULL);
+}
