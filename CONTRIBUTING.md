@@ -1,60 +1,65 @@
-# Katkı rehberi
+# Contributing to ExamShell
 
-M2 ExamShell, Python standart kütüphanesiyle çalışan bir sınav ve pratik uygulaması ve JavaScript ile yazılmış bir VS Code eklentisinden oluşur.
+ExamShell consists of an exam and practice application built with the Python standard library and a VS Code extension written in JavaScript. M2 is currently supported, with additional milestones planned.
 
-## Geliştirme ortamı
+## Development environment
 
-Repoyu klonlayıp Python 3.9+, Clang/GCC ve VS Code kur. JavaScript sözdizimi kontrolü için Node.js kullanılır. Terminal akışını ayrı bir test profiliyle çalıştırabilirsin.
+Clone the repository and install Python 3.9+, Clang or GCC, and VS Code. Node.js is used to check JavaScript syntax. Use a separate profile for development.
 
 ```sh
-python3 examshell.py --terminal --home /tmp/m2-development
+python3 examshell.py --terminal --home /tmp/examshell-development
 python3 -m unittest discover -s tests -v
 node --check vscode/extension.js
 ```
 
-IDE akışı için `--terminal` seçeneğini kaldır. Test profilinde ilk açılışta API anahtarını boş bırakabilirsin.
+Omit `--terminal` to test the editor workflow. You can skip the API key prompt when creating a test profile.
 
-## Dosya düzeni
+## Project layout
 
-| Yol | İçerik |
+| Path | Purpose |
 |---|---|
-| `examshell.py` | Milestone seçimi, oturum, pratik ve komutlar |
-| `m2/grader.py` | C derleme, çalıştırma ve sonuç karşılaştırma |
-| `m2/cases.py` | Program testleri ve fonksiyon sürücüleri |
-| `m2/editor.py` | Python ile VS Code arasındaki dosya tabanlı iletişim |
-| `m2/ai.py` | Gemini istemcisi |
-| `vscode/` | VS Code eklentisi ve komutları |
-| `bank/level*/` | Subject, kısa çözüm, alternatif çözüm ve header dosyaları |
-| `tests/` | Python regresyon testleri |
+| `examshell.py` | Milestone selection, sessions, practice and commands |
+| `m2/grader.py` | C compilation, execution and result comparison |
+| `m2/cases.py` | Program test cases and function drivers |
+| `m2/editor.py` | File-based communication between Python and VS Code |
+| `m2/ai.py` | Gemini client |
+| `m2/i18n.py`, `m2/en.json` | Language selection and interface translations |
+| `m2/updater.py` | Startup update checks and fast-forward installation |
+| `vscode/` | VS Code extension and commands |
+| `bank/level*/` | Subjects, language resources, solutions and headers |
+| `tests/` | Python regression tests |
 
-## Hata bildirimi
+## Reporting bugs
 
-Issue içinde işletim sistemini, Python sürümünü, terminal veya IDE modunu, sorunun adını ve hatayı üreten adımları belirt. Beklediğin davranışı ve gözlemlediğin sonucu ekle. Test hatasında ilgili girdiyi ve çıktıyı paylaş. API anahtarlarını ve kişisel profil dosyalarını rapora ekleme.
+Include your operating system, Python version, terminal or editor mode, question name and steps to reproduce the issue. Describe the expected and actual behavior. For grading failures, include the relevant input and output. Keep API keys and personal profile files out of reports.
 
-## Değişiklik gönderme
+## Submitting changes
 
-1. Fork üzerinde değişiklik için bir branch oluştur.
-2. Commitleri soru bankası, uygulama davranışı, IDE veya dokümantasyon gibi anlamlı kapsamlarla ayır.
-3. Değişen davranışı mevcut testlerle doğrula. Bir hata düzeltiyorsan onu yeniden üreten bir regresyon testi ekle.
-4. Pull request açıklamasında problemi, değişen davranışı ve yaptığın doğrulamayı yaz.
+1. Create a branch in your fork.
+2. Group commits by meaningful scope, such as the question bank, application behavior, editor integration or documentation.
+3. Verify the changed behavior with the existing tests. When fixing a bug, add a regression test that reproduces it.
+4. Describe the problem, resulting behavior and verification in your pull request.
 
-IDE değişikliklerinde soldaki teslim ile sağdaki subject eşleşmesini, Grade ile kaydetmeyi, hatalı teslimden sonra aynı soruda kalmayı ve başarılı teslimle sonraki soruya geçmeyi dene. `exit` sonrası yeni oturumu ve `/quit` sonrası aynı soruya dönüşü kontrol et.
+For editor changes, check that the submission on the left matches the subject on the right. Verify saving through Grade, staying on the same question after failure, and advancing after success. Check starting a new session after `exit` and resuming the same question after `/quit`.
 
-## Soru ekleme
+## Adding questions
 
-Soruyu uygun `bank/levelN/soru_adi/` klasörüne ekle. Subject'i `README.md`, kısa çözümü `main.c`, alternatif çözümü `soru_adi.c` olarak yerleştir. Gereken header dosyalarını aynı klasöre koy. Teslim dosyası klasör adından farklıysa `m2/grader.py` içindeki dosya eşlemesini güncelle.
+Place each question in the appropriate `bank/levelN/question_name/` directory. Use `README.md` for the English subject, `main.c` for the short solution and `question_name.c` for the alternative solution. Put required headers in the same directory. If the submission filename differs from the directory name, update the mapping in `m2/grader.py`.
 
-Program sorusu için argüman ve beklenen çıktı çiftleri, fonksiyon sorusu için C sürücüsü ve beklenen sonuçlar ekle. İki çözümü de test et. Soru sayısı değişirse kullanıcıya gösterilen toplamı ve belgeleri güncelle. Beklenen çıktıları subject'ten türet.
+For program questions, add argument and expected-output pairs. For function questions, add a C driver and expected results. Test both solutions. Update displayed question counts and documentation when the bank changes. Derive expected outputs from the subject.
 
-Yeni milestone eklerken onun soru bankasını, değerlendiricisini ve kayıt düzenini tanımla. Mevcut M2 ilerleme dosyalarıyla uyumluluğu koru.
+When adding a milestone, define its question bank, grader and persistence layout. Preserve compatibility with existing M2 progress files.
 
-## README güncellemeleri
+## Documentation guidelines
 
-README, projeyi ilk kez klonlayan bir kullanıcının kurup çalıştırabileceği adımları içermeli. Komut, kurulum gereksinimi veya oturum davranışı değiştiğinde ilgili bölümü güncelle. Tamamlanan özelliklerle henüz doğrulanmamış davranışları açıkça belirt.
+Write all repository Markdown documentation in English. Keep the README usable for someone cloning the project for the first time. Update the relevant sections when commands, installation requirements or session behavior change. Clearly identify supported features and behavior that still needs verification.
 
+Preserve function names, filenames and literal sample inputs and outputs in subjects.
 
-## Dil desteği
+## Language support
 
-Varsayılan dil İngilizcedir. Python arayüz mesajları için `m2/i18n.py` ve `m2/en.json` kullanılır. Türkçe mesaj anahtarının İngilizce karşılığını kataloğa ekle ve mesajı `t()` ile göster. VS Code düğmelerinde oturumdan gelen `language` değerini kullan.
+English is the default application language. Python interface messages use `m2/i18n.py` and `m2/en.json`. Add the English equivalent of a Turkish message key to the catalog and display it through `t()`. VS Code buttons use the session's `language` value.
 
-Yeni sorularda İngilizce `README.md` yanında Türkçe `README.tr.md` ekle. Dosya adları, prototipler ve örnek girdi/çıktıları koru. Dil değişikliğinin aktif soru ve ilerlemeyi koruduğunu doğrula. `README.md` ana İngilizce rehber, `README.tr.md` Türkçe rehberdir.
+For new questions, add the Turkish subject as `subject.tr.txt` alongside the English `README.md`. These text files are runtime language resources. Keep filenames, prototypes and example inputs and outputs consistent across languages.
+
+Verify that changing language updates the active subject while preserving the submission, session and progress.

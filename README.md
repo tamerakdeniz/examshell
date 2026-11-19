@@ -4,8 +4,6 @@ ExamShell is a practice environment for 42 milestone exams, with a local C grade
 
 Milestone 2 is currently available with 53 questions across four levels. The milestone selector provides the entry point for future M3, M4 and other milestone support.
 
-[Türkçe rehber](README.tr.md)
-
 ## Supported milestones
 
 | Milestone | Status | Question bank |
@@ -36,7 +34,7 @@ If needed, add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc` or `~/.bashr
 
 Choose **English** or **Türkçe** on first launch. Enter selects English. Your preference is saved in your profile and reused on subsequent launches, including when resuming a session. Existing profiles are prompted once after upgrading.
 
-Use `/lang` to reopen the language menu, or `/lang en` and `/lang tr` to switch directly. The terminal, subject and VS Code buttons update immediately. All 53 Turkish subjects are bundled for offline use. Function names, filenames and example inputs/outputs keep their original form.
+Use `/lang` to reopen the language menu, or `/lang en` and `/lang tr` to switch directly. The terminal, subject and VS Code buttons update immediately. All 53 Turkish subjects are bundled as `subject.tr.txt` language resources for offline use. Repository documentation is maintained in English. Function names, filenames and example inputs/outputs keep their original form.
 
 Select M2 in the milestone menu. You can skip the optional Gemini API key prompt with Enter. Start an exam with `/exam` or configure practice with `/practice`.
 

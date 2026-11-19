@@ -50,7 +50,7 @@ class LanguageTests(unittest.TestCase):
             app.shell(home, editor)
             self.assertEqual([x[2] for x in editor.subjects], ['en','tr','en'])
             self.assertEqual(len({x[0] for x in editor.subjects}), 1)
-            self.assertEqual(editor.subjects[1][1].name, 'README.tr.md')
+            self.assertEqual(editor.subjects[1][1].name, 'subject.tr.txt')
             self.assertEqual(json.loads((home/'config.json').read_text())['language'], 'en')
 
     def test_subjects_and_help(self):

@@ -23,4 +23,4 @@ def t(message, *values):
 
 
 def subject_path(directory):
-    return directory / ('README.tr.md' if _language == 'tr' else 'README.md')
+    return directory / ('subject.tr.txt' if _language == 'tr' else 'README.md')
