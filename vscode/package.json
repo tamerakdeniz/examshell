@@ -1,0 +1,11 @@
+{
+  "name": "m2-examshell", "displayName": "M2 ExamShell", "publisher": "m2-practice",
+  "version": "1.0.0", "engines": {"vscode": "^1.75.0"},
+  "activationEvents": ["workspaceContains:.m2-view.json"], "main": "./extension.js",
+  "contributes": {"commands": [
+    {"command":"m2.subject","title":"M2: Subject ve Teslim"},
+    {"command":"m2.grade","title":"M2: Kaydet ve Grade Et"},
+    {"command":"m2.answer","title":"M2: Cevabı Gör"},
+    {"command":"m2.diff","title":"M2: Kodumu Karşılaştır"}
+  ]}
+}
