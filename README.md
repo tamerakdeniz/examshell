@@ -1,16 +1,25 @@
-# M2 ExamShell
+# ExamShell
 
-Practice 42 Milestone 2 with 53 questions, a local C grader, a split VS Code workspace and optional Gemini assistance.
+ExamShell is a practice environment for 42 milestone exams, with a local C grader, a split VS Code workspace and optional Gemini assistance.
+
+Milestone 2 is currently available with 53 questions across four levels. The milestone selector provides the entry point for future M3, M4 and other milestone support.
 
 [Türkçe rehber](README.tr.md)
+
+## Supported milestones
+
+| Milestone | Status | Question bank |
+|---|---|---|
+| M2 | Available | 53 questions, 4 levels |
+| M3, M4 and beyond | Future additions | To be added |
 
 ## Install
 
 Requirements: macOS or Linux, Python 3.9+, Git and a C compiler available as `cc` (Clang or GCC). Install VS Code for the editor workflow. Python uses only the standard library.
 
 ```sh
-git clone https://github.com/tamerakdeniz/M2-Examshell.git
-cd M2-Examshell
+git clone https://github.com/tamerakdeniz/examshell.git
+cd examshell
 python3 examshell.py
 ```
 

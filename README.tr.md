@@ -1,16 +1,16 @@
 [English](README.md)
 
-# M2 ExamShell
+# ExamShell
 
-42 Milestone 2 için Türkçe terminal pratiği. Soru bankasındaki 53 subject, kısa C çözümleri ve alternatif çözümler projeye dahildir. Çalıştırmak için diğer repo, Python paketi veya API anahtarı gerekmez.
+42 milestone sınavları için pratik ortamı. Şu anda M2 desteklenir; M3, M4 ve diğer milestone’lar ileride eklenebilir. Soru bankasındaki 53 subject, kısa C çözümleri ve alternatif çözümler projeye dahildir. Çalıştırmak için diğer repo, Python paketi veya API anahtarı gerekmez.
 
 ## Başlat
 
 macOS veya Linux'ta Python 3.9+, `cc` (Clang/GCC) ve IDE görünümü için VS Code gerekir. Python tarafında harici paket kurulumu gerekmez.
 
 ```sh
-git clone https://github.com/tamerakdeniz/M2-Examshell.git
-cd M2-Examshell
+git clone https://github.com/tamerakdeniz/examshell.git
+cd examshell
 python3 examshell.py
 ```
 
