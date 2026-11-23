@@ -3,6 +3,7 @@ import json
 from contextlib import redirect_stdout
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -13,6 +14,29 @@ from m2.grader import QUESTIONS, grade, initialize
 
 
 class ExamTests(unittest.TestCase):
+    def test_compiler_warnings_fail_before_running_cases(self):
+        warnings = {
+            'unused-variable': 'void warning_probe(void) { int unused; }',
+            'unused-parameter': 'void warning_probe(int unused) {}',
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            for q in ('fizzbuzz', 'ft_atoi', 'do_op'):
+                for warning, code in warnings.items():
+                    with self.subTest(q=q, warning=warning):
+                        d = Path(tmp) / q / warning
+                        p = initialize(q, d)
+                        shutil.copyfile(app.solution(q), p)
+                        if q == 'do_op':
+                            (d / 'helper.c').write_text(code)
+                        else:
+                            with p.open('a') as source:
+                                source.write('\n' + code + '\n')
+                        with patch('m2.grader.subprocess.run', wraps=subprocess.run) as run:
+                            ok, msg = grade(q, d)
+                        self.assertFalse(ok, msg)
+                        self.assertIn(warning, msg)
+                        self.assertEqual(run.call_count, 1, 'Failed builds must not run test cases')
+
     def test_all_reference_solutions(self):
         self.assertEqual(set(QUESTIONS), set(FUNCTION) | set(PROGRAM))
         with tempfile.TemporaryDirectory() as tmp:
@@ -38,6 +62,10 @@ class ExamTests(unittest.TestCase):
             run(['/exam','/quit'])
             q=state()['session']['question']
             path=next((home/'work').rglob('*.c'))
+            path.write_text(app.solution(q).read_text() + '\nvoid warning_probe(int unused) {}\n')
+            self.assertIn('Derleme hatası:',run(['/grade','/quit']))
+            self.assertEqual(q,state()['session']['question'])
+            self.assertEqual(state()['solved'],[])
             path.write_text('int main(void){return 0;}')
             self.assertIn('Beklenen:',run(['/grade','/quit']))
             self.assertEqual(q,state()['session']['question'])

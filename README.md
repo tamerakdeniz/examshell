@@ -74,7 +74,7 @@ The milestone menu also accepts `/lang`, `/update` and `/help`.
 
 ## Local grading
 
-Program tests compare stdout byte for byte. Function tests compile a separate C driver that calls the public function and prints its result. A failure shows the first failing input, expected output, actual output or compiler error. Each test has a two-second timeout.
+Submissions are compiled with `-std=c99 -Wall -Wextra -Werror`. Compiler warnings are treated as errors: a failed build fails grading immediately, before any test cases run. Program tests compare stdout byte for byte. Function tests compile a separate C driver that calls the public function and prints its result. A failure shows the first failing input, expected output, actual output or compiler error. Each test has a two-second timeout.
 
 Tests implement subject-based behavior checks. Official hidden Moulinette tests, Norm checking, forbidden-function detection and memory-leak checks are outside the grader's coverage. Submissions run under your local user account.
 

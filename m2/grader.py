@@ -49,7 +49,7 @@ def grade(name, directory):
             driver = root / 'driver.c'
             driver.write_text(DRIVERS[name])
             sources.append(driver)
-        cmd = [cc, '-std=c99', '-I', str(directory.resolve()), *[str(p.resolve()) for p in sources], '-o',str(binary)]
+        cmd = [cc, '-std=c99', '-Wall', '-Wextra', '-Werror', '-I', str(directory.resolve()), *[str(p.resolve()) for p in sources], '-o',str(binary)]
         try:
             build = subprocess.run(cmd,cwd=root,capture_output=True,timeout=20)
         except subprocess.TimeoutExpired:
